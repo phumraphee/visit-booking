@@ -1,0 +1,17 @@
+{
+  "name": "สแกนเช็คอิน · Check-in",
+  "short_name": "สแกนเช็คอิน",
+  "start_url": "./",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#141210",
+  "theme_color": "#141210",
+  "icons": [
+    {
+      "src": "../assets/brand/app-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "id": "../scan/"
+}

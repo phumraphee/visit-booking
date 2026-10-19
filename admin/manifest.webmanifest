@@ -1,0 +1,17 @@
+{
+  "name": "ระบบจองเข้าชม · Visit booking",
+  "short_name": "ระบบจอง",
+  "id": "../admin/",
+  "start_url": "./",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#f7f4ee",
+  "icons": [
+    {
+      "src": "../assets/brand/app-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

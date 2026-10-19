@@ -1,0 +1,25 @@
+# ป้องกันไฟล์ที่ไม่ควรเข้าถึงจากเว็บ
+<FilesMatch "^(config\.php|config\.example\.php)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/(lib|cache|data|tools/import_pretix\.php)(/|$)
+DirectoryIndex index.php
+
+
+# แคชไฟล์ในเครื่องผู้ใช้ (เร็วขึ้นตอนเปิดซ้ำ) — css/js มี ?v= เปลี่ยนทุกครั้งที่อัปเดต จึงแคชยาวได้; ยกเว้น sw.js (ต้องเช็คใหม่เสมอ)
+<IfModule mod_headers.c>
+  # ความปลอดภัย: ห้ามเว็บอื่นฝังหน้าเรา (clickjacking), ห้ามเดาชนิดไฟล์, บังคับ HTTPS
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=15552000"
+  <FilesMatch "^(?!sw\.js$).*\.(css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpg|svg|ico|webp)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+  <FilesMatch "^sw\.js$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

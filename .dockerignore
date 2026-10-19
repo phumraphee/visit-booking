@@ -1,0 +1,13 @@
+.git
+config.php
+config.prod.php
+data
+cache/*
+!cache/.htaccess
+backups
+build
+dev
+notes
+CLAUDE.md
+deploy.sh
+publish
