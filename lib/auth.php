@@ -77,11 +77,11 @@ function auth_verify_code(string $email, string $code): ?array
     return $st->fetch() ?: null;
 }
 
-function auth_login(array $admin): void
+function auth_login(array $admin, ?string $via = null): void
 {
     $token = bin2hex(random_bytes(32));
-    db()->prepare('INSERT INTO auth_tokens (token_hash, admin_id, expires_at, created_at, ua) VALUES (?, ?, ?, ?, ?)')
-        ->execute([hash('sha256', $token), $admin['id'], time() + AUTH_DAYS * 86400, now_iso(), substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 200)]);
+    db()->prepare('INSERT INTO auth_tokens (token_hash, admin_id, expires_at, created_at, ua, via) VALUES (?, ?, ?, ?, ?, ?)')
+        ->execute([hash('sha256', $token), $admin['id'], time() + AUTH_DAYS * 86400, now_iso(), substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 200), $via]);
     auth_set_cookie($token);
 }
 
@@ -96,13 +96,25 @@ function auth_set_cookie(string $token): void
     ]);
 }
 
-function auth_logout(): void
+/** ออกจากระบบ — คืนค่าวิธีที่ใช้เข้า (เช่น 'oidc') เพื่อให้หน้าเว็บไปออกจาก SSO ต่อ */
+function auth_logout(): ?string
 {
     $t = $_COOKIE[AUTH_COOKIE] ?? '';
+    $via = null;
     if ($t !== '') {
+        $st = db()->prepare('SELECT via FROM auth_tokens WHERE token_hash = ?');
+        $st->execute([hash('sha256', $t)]);
+        $via = $st->fetchColumn() ?: null;
         db()->prepare('DELETE FROM auth_tokens WHERE token_hash = ?')->execute([hash('sha256', $t)]);
     }
     setcookie(AUTH_COOKIE, '', ['expires' => time() - 3600, 'path' => '/']);
+    return $via;
+}
+
+/** เปิด passkey (Face ID / ลายนิ้วมือ) หรือไม่ — ปิดได้ด้วย 'passkey_enabled' => false (ข้อมูลในตาราง passkeys ไม่ถูกลบ) */
+function passkey_enabled(): bool
+{
+    return (bool) (cfg()['passkey_enabled'] ?? true);
 }
 
 function current_admin(): ?array

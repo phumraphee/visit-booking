@@ -75,7 +75,8 @@
     });
   }
 
-  const PK = window.Passkey && window.Passkey.supported ? window.Passkey.create(api) : null;
+  const AUTH = window.AUTH || {};
+  const PK = AUTH.passkey !== false && window.Passkey && window.Passkey.supported ? window.Passkey.create(api) : null;
   const toast = (msg, bad) => {
     const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg;
     document.body.append(t); setTimeout(() => t.remove(), 2600);
@@ -85,6 +86,7 @@
   function showLogin() {
     $('nav').hidden = true;
     view.innerHTML = `<section class="panel narrow"><h2>เข้าสู่ระบบ</h2>
+      ${AUTH.sso ? `<a class="primary sso-btn" href="oidc.php?start=1">${esc(AUTH.sso[EN ? 'en' : 'th'])}</a><div class="pk-or"><span>หรือ</span></div>` : ''}
       <form id="lf"><label><span>อีเมล</span><input type="email" name="email" required autocomplete="email"></label>
       <div id="codeRow" hidden><label><span>รหัส 6 หลักจากอีเมล <em>(หรือกดปุ่ม "เข้าสู่ระบบ" ในอีเมล)</em></span><input class="otp" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*"></label></div>
       <p class="err" id="lerr" hidden></p>
@@ -99,6 +101,7 @@
         catch (x) { const t = x.message === 'auth' ? null : window.Passkey.errorText(x); if (t) { err.textContent = t; err.hidden = false; } }
       };
     }
+    ssoError($('lerr'));
     let step = 1;
     $('haveCode').onclick = () => { step = 2; $('codeRow').hidden = false; $('lbtn').textContent = 'เข้าสู่ระบบ'; $('haveCode').hidden = true; ($('lf').email.value ? $('lf').code : $('lf').email).focus(); };
     $('lf').addEventListener('submit', async e => {
@@ -115,6 +118,15 @@
         }
       } catch (x) { if (x.message !== 'auth') { err.textContent = x.message; err.hidden = false; } }
     });
+  }
+
+  // กลับจาก SSO พร้อม ?sso=denied|fail → แสดงข้อความแล้วลบออกจาก URL
+  function ssoError(el) {
+    const q = new URLSearchParams(location.search).get('sso');
+    if (!q) return;
+    history.replaceState(null, '', location.pathname + location.hash);
+    el.textContent = q === 'denied' ? 'บัญชีนี้ไม่มีสิทธิ์เข้าหลังบ้าน' : 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่';
+    el.hidden = false;
   }
 
   // เหตุผลที่ยกเลิก (orders.canceled_by)
@@ -1426,7 +1438,7 @@
         <div class="acct-main"><div class="acct-name"><b>${R(me.name || me.email.split('@')[0])}</b>
           <button type="button" class="iconbtn" id="meName" aria-label="แก้ไขชื่อ" title="แก้ไขชื่อ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button></div>
           <div class="acct-mail">${R(me.email)} <button type="button" class="linkbtn sm" id="meEmail">เปลี่ยนอีเมล</button></div>${roleTag(me)}</div></section>
-      <section class="panel"><h3>Face ID / ลายนิ้วมือ (Passkey)</h3>
+      <section class="panel"${AUTH.passkey === false ? ' hidden' : ''}><h3>Face ID / ลายนิ้วมือ (Passkey)</h3>
         <p class="note">เข้าสู่ระบบได้ทันทีโดยไม่ต้องรอรหัสทางอีเมล ใช้ได้ทั้งหลังบ้านและหน้าสแกน · passkey ใน iCloud Keychain / Google Password Manager ใช้ได้ทุกเครื่องที่ล็อกอินบัญชีเดียวกัน</p>
         ${j.passkeys.length ? `<table class="tbl"><tbody>${j.passkeys.map(p => `<tr><td>${R(p.name)}<br><small>ตั้งเมื่อ ${fmtTs(p.created_at)}${p.last_used_at ? ' · ใช้ล่าสุด ' + fmtTs(p.last_used_at) : ''}</small></td>
           <td class="c-ci"><button class="linkbtn" data-pkdel="${p.id}" data-name="${esc(p.name)}">ลบ</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">ยังไม่ได้ตั้ง</p>'}
@@ -1588,7 +1600,12 @@
     try { sessionStorage.setItem('vb-back', location.href); } catch (_) {}
   });
   document.querySelectorAll('[data-al]').forEach(b => { b.classList.toggle('on', b.dataset.al === (window.ADMIN_LANG || 'th')); b.onclick = () => window.setAdminLang(b.dataset.al); });
-  $('logout').onclick = async () => { await api('logout').catch(() => {}); me = null; showLogin(); };
+  $('logout').onclick = async () => {
+    const r = await api('logout').catch(() => ({}));
+    me = null;
+    if (r.sso) location.href = 'oidc.php?logout=1';   // เข้าด้วย SSO → ไปออกจาก SSO ต่อ (ดู admin/oidc.php)
+    else showLogin();
+  };
 
   // ลิงก์เข้าสู่ระบบจากอีเมล (?login=...) → เข้าเลย แล้วลบ token ออกจาก URL
   const loginToken = new URLSearchParams(location.search).get('login');

@@ -96,3 +96,5 @@ button.pill.arm{background:var(--bad);color:#fff}
 /* เปิดในกรอบของหลังบ้าน: หลังบ้านเว้นแถบสถานะให้แล้ว */
 body.embed .bar{padding-top:10px!important}
 body.embed::before{display:none!important}
+#ssoLogin{width:100%}
+#login .or{text-align:center;color:var(--muted,#999);font-size:13px;margin:12px 0}

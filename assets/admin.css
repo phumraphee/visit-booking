@@ -520,3 +520,4 @@ html,*{touch-action:manipulation} /* แตะสองครั้งไม่�
 .txl{display:block;margin:6px 0}.txl>span{display:block;font-size:13px;color:var(--muted,#6e675e);margin-bottom:2px}.txl textarea{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;resize:vertical}
 .txdef{display:block;margin-top:2px}.txrow .actions{justify-content:flex-end;gap:12px;margin-top:6px}
 .tabs a{padding:8px 14px;font-size:14px;color:inherit;text-decoration:none}.tabs a.on{background:var(--ink);color:#fff}.txtabs{flex-wrap:wrap;margin:4px 0 6px}
+.sso-btn{display:block;width:100%;text-align:center;box-sizing:border-box}

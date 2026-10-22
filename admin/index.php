@@ -1,9 +1,11 @@
 <?php
 // หลังบ้านการจองเข้าชม — SPA (assets/admin.js) คุยกับ api/admin.php
-$v = '1.8.74';
+$v = '1.8.75';
 require_once __DIR__ . '/../lib/pretix.php';
 require_installed('../');
 require_once __DIR__ . '/../lib/venue.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/oidc.php';
 $vn = htmlspecialchars(venue_name('th'), ENT_QUOTES);
 header('Cache-Control: no-cache');   // แอปหน้าจอโฮมไม่ค้างหน้าเก่า
 ?>
@@ -53,7 +55,8 @@ header('Cache-Control: no-cache');   // แอปหน้าจอโฮมไ�
 <div class="testbar" id="testbar" hidden>โหมดทดลองเปิดอยู่ — การจองใหม่เป็นข้อมูลทดสอบ และอีเมลจะไม่ถูกส่งจริง (ดูได้ที่เมนู "อีเมล")</div>
 <main class="wrap" id="view"><p class="note">กำลังโหลด…</p></main>
 <script>window.VENUE_NAME = <?= json_encode(['th' => venue_name('th'), 'en' => venue_name('en')], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;</script>
-<script src="../assets/admin-i18n.js?v=1.0.65"></script>
+<script>window.AUTH = <?= json_encode(['sso' => oidc_enabled() ? ['th' => oidc_label('th'), 'en' => oidc_label('en')] : null, 'passkey' => passkey_enabled()], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;</script>
+<script src="../assets/admin-i18n.js?v=1.0.66"></script>
 <script src="../assets/passkey.js?v=<?= $v ?>" defer></script>
 <script src="../assets/ptr.js?v=<?= $v ?>" defer></script>
 <script src="../assets/fileview.js?v=<?= $v ?>" defer></script>

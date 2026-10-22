@@ -1,6 +1,10 @@
 <?php
 // หน้าสแกนเช็คอิน (PWA) — ใช้ได้ทั้ง iOS/Android ผ่านเบราว์เซอร์, ทำงานออฟไลน์ได้หลังโหลดรายชื่อรอบ
-$v = '1.2.19';
+$v = '1.2.20';
+require_once __DIR__ . '/../lib/pretix.php';
+require_installed('../');
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/oidc.php';
 ?>
 <!doctype html>
 <html lang="th">
@@ -33,6 +37,8 @@ $v = '1.2.19';
 
 <section id="login" class="sheet" hidden>
   <h2>เข้าสู่ระบบ</h2>
+  <button type="button" id="ssoLogin" class="btn" hidden></button>
+  <p class="or" id="ssoOr" hidden>หรือ</p>
   <form id="lf">
     <input type="email" name="email" placeholder="อีเมล" required autocomplete="email">
     <input name="code" type="text" class="otp" placeholder="รหัส 6 หลัก" inputmode="numeric" autocomplete="one-time-code" maxlength="6" hidden>
@@ -91,7 +97,8 @@ $v = '1.2.19';
   </div>
 </div>
 <canvas id="canvas" hidden></canvas>
-<script src="../assets/admin-i18n.js?v=1.0.65"></script>
+<script>window.AUTH = <?= json_encode(['sso' => oidc_enabled() ? ['th' => oidc_label('th'), 'en' => oidc_label('en')] : null, 'passkey' => passkey_enabled()], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;</script>
+<script src="../assets/admin-i18n.js?v=1.0.66"></script>
 <script src="../assets/vendor/jsQR.js?v=1.4.0" defer></script>
 <script src="../assets/passkey.js?v=<?= $v ?>" defer></script>
 <script src="../assets/ptr.js?v=<?= $v ?>" defer></script>

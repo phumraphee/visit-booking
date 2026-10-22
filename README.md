@@ -171,6 +171,19 @@ Then open http://localhost:8080 and follow the setup wizard. Data is kept in a D
 | Google Wallet passes | Google Pay & Wallet Console issuer + service account JSON | `config.php` (`gwallet_*`) |
 | Bot protection | Cloudflare Turnstile site + secret key | Settings → External services |
 | Newsletter sign-ups | Ghost Admin API key | Settings → External services |
+| Single sign-on for staff | OpenID Connect provider (e.g. Pocket ID), callback `/admin/oidc.php` | `config.php` (`oidc_*`) |
+
+## Single sign-on for staff (optional)
+
+Staff can sign in to the admin and the scanner with your organisation's OpenID Connect provider (e.g. Pocket ID, Keycloak, Authentik) instead of email codes.
+
+1. At your provider, create a confidential client (not public) with PKCE enabled.
+   Callback / redirect URL: `https://your-site/admin/oidc.php` — no logout callback is needed.
+2. In `visit-booking-data/config.php` set `oidc_issuer` (e.g. `https://sso.example.org`), `oidc_client_id` and `oidc_client_secret` — or keep the ID and secret out of the config in a JSON file (`{"client_id": "…", "client_secret": "…"}`) and point `oidc_secret_file` to it. Optionally set the button text with `oidc_label`.
+3. Add each staff member in **Settings → Users** with the same email address they have at the provider. Users are matched by email; nobody is created automatically. Make sure users cannot change their own email at the provider.
+4. Optional: `'passkey_enabled' => false` hides passkey sign-in. Email sign-in codes keep working as a fallback.
+
+Signing out ends the session here and, if the provider session is still active, sends the user to the provider's sign-out page (`<issuer>/logout`, change with `oidc_logout_url`).
 
 ## Fonts
 

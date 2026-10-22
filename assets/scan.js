@@ -328,7 +328,8 @@
   $('sessBtn').onclick = () => { if (!$('sessions').hidden && session) { pick(session); return; } showSessions(); };
 
   // ---------- passkey (Face ID / ลายนิ้วมือ) ----------
-  const PK = window.Passkey && window.Passkey.supported ? window.Passkey.create(api) : null;
+  const AUTH = window.AUTH || {};
+  const PK = AUTH.passkey !== false && window.Passkey && window.Passkey.supported ? window.Passkey.create(api) : null;
   if (PK) {
     $('pkLogin').onclick = async () => {
       $('lmsg').textContent = '';
@@ -351,6 +352,17 @@
   function showLogin() {
     show('login');
     if (PK) { $('pkLogin').hidden = false; PK.prepLogin(); }
+    if (AUTH.sso) {
+      // ในกรอบของแอปหน้าจอโฮม (embed) ต้องเปลี่ยนทั้งหน้า — หน้า SSO ไม่ยอมเปิดในกรอบ แล้วกลับมาที่หลังบ้าน
+      const b = $('ssoLogin');
+      b.textContent = AUTH.sso[EN ? 'en' : 'th']; b.hidden = false; $('ssoOr').hidden = false;
+      b.onclick = () => { const embed = document.body.classList.contains('embed'); (embed ? window.top : window).location.href = '../admin/oidc.php?start=1' + (embed ? '' : '&back=scan'); };
+    }
+    const sq = new URLSearchParams(location.search).get('sso');
+    if (sq) {
+      history.replaceState(null, '', location.pathname + location.hash);
+      $('lmsg').textContent = sq === 'denied' ? 'บัญชีนี้ไม่มีสิทธิ์เข้าหลังบ้าน' : 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่';
+    }
     let step = 1;
     $('haveCode').onclick = () => { const f = $('lf'); step = 2; f.code.hidden = false; f.querySelector('button').textContent = 'เข้าสู่ระบบ'; $('haveCode').hidden = true; (f.email.value ? f.code : f.email).focus(); };
     $('lf').onsubmit = async e => {

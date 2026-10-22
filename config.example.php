@@ -39,8 +39,17 @@ return [
     'gwallet_issuer_id' => '',
     'gwallet_sa'        => __DIR__ . '/wallet/google-sa.json',
 
-    // ---- Passkeys (optional) — defaults to the site's domain ----
-    'webauthn_rp_id' => '',
+    // ---- Passkeys (optional) — defaults to the site's domain; false hides passkey sign-in (stored passkeys are kept) ----
+    'webauthn_rp_id'  => '',
+    'passkey_enabled' => true,
+
+    // ---- Single sign-on for the admin and scanner (optional, OpenID Connect e.g. Pocket ID, Keycloak, Authentik) ----
+    // Callback URL to register at your provider: https://your-site/admin/oidc.php
+    // Users are matched by email to existing admin users (no automatic sign-up). Email sign-in codes keep working.
+    'oidc_issuer'        => '',   // e.g. https://sso.example.org  (empty = off)
+    'oidc_client_id'     => '',
+    'oidc_client_secret' => '',   // or put {"client_id":…,"client_secret":…} in a file and set 'oidc_secret_file'
+    // 'oidc_label'      => ['th' => 'เข้าสู่ระบบด้วย SSO', 'en' => 'Sign in with SSO'],
 
     // Cloudflare Turnstile and Ghost newsletter can be set in Admin → Settings → External services.
 ];

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/pretix.php';   // cfg(), json_out(), rate_limited(), client_ip(), turnstile_ok(), ghost_subscribe()
 
-const DB_VERSION = 16;
+const DB_VERSION = 17;
 
 function db_file(): string
 {
@@ -87,6 +87,9 @@ function db_migrate(PDO $pdo): void
         }
         if ($v < 16) {
             db_migrate_v16($pdo);
+        }
+        if ($v < 17) {
+            db_migrate_v17($pdo);
         }
         $pdo->exec('PRAGMA user_version = ' . DB_VERSION);
         return;
@@ -207,7 +210,25 @@ SQL);
     db_migrate_v14($pdo);
     db_migrate_v15($pdo);
     db_migrate_v16($pdo);
+    db_migrate_v17($pdo);
     $pdo->exec('PRAGMA user_version = ' . DB_VERSION);
+}
+
+/** v17: เข้าสู่ระบบผ่าน OIDC (Pocket ID ฯลฯ) — auth_tokens.via บอกว่าเข้าด้วยวิธีไหน (ใช้ตอนออกจากระบบ), oidc_states เก็บ state/nonce/PKCE ระหว่างไปหน้า SSO */
+function db_migrate_v17(PDO $pdo): void
+{
+    $cols = array_column($pdo->query('PRAGMA table_info(auth_tokens)')->fetchAll(), 'name');
+    if (!in_array('via', $cols, true)) {
+        $pdo->exec('ALTER TABLE auth_tokens ADD COLUMN via TEXT');
+    }
+    $pdo->exec('CREATE TABLE IF NOT EXISTS oidc_states (
+        state      TEXT PRIMARY KEY,
+        nonce      TEXT NOT NULL,
+        verifier   TEXT NOT NULL,
+        purpose    TEXT NOT NULL,
+        back       TEXT NOT NULL,
+        expires_at INTEGER NOT NULL
+    )');
 }
 
 /**

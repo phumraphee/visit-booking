@@ -256,6 +256,10 @@ function do_checkin(string $secret, int $sessionId, string $by, bool $force = fa
     return ['result' => 'ok', 'ticket' => $info];
 }
 
+if (str_starts_with($action, 'passkey_') && $action !== 'passkey_delete' && !passkey_enabled()) {
+    json_fail(403, 'passkey_disabled', 'ปิดการเข้าสู่ระบบด้วย passkey แล้ว');
+}
+
 switch ($action) {
 
     // ---------- auth ----------
@@ -330,8 +334,7 @@ switch ($action) {
         json_out(200, ['ok' => true]);
 
     case 'logout':
-        auth_logout();
-        json_out(200, ['ok' => true]);
+        json_out(200, ['ok' => true, 'sso' => auth_logout() === 'oidc']);   // เข้าด้วย SSO → หน้าเว็บไป admin/oidc.php?logout=1 ต่อ
 
     case 'me':
         $me = current_admin();
